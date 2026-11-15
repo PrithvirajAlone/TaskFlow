@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categories | TaskFlow</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <svg class="cyber-cursor" viewBox="0 0 64 80">
+        <path d="M3 2 L25 28 L37 12 L34 35 L61 43 L36 49 L49 76 L29 56 L12 75 L19 48 L3 2 Z" fill="#00ff66"
+            stroke="#d7ffe3" stroke-width="2" stroke-linejoin="miter" />
+    </svg>
+
+    <h1>TaskFlow Categories</h1>
+
+    <form action="/categories" method="post">
+        <input class="task-input" type="text" name="category" placeholder="Enter category name" required>
+        <button class="add-task-btn" type="submit">Create Category</button>
+    </form>
+
+    <div class="categories-container">
+        {% for category in categories %}
+        <div class="category-card">
+            <h2 onclick="toggleCategory({{ category.id }})">
+                {{ category.name }} ▼
+            </h2>
+            <div class="category-stats">
+                <p>Total Tasks: {{ category.total_tasks }}</p>
+                <p>Completed: {{ category.completed_tasks }}</p>
+                <p>Pending: {{ category.pending_tasks }}</p>
+                <p>Progress: {{ "%.1f"|format(category.progress) }}%</p>
+            </div>
+            <div id="tasks-{{ category.id }}" style="display: none;">
+                <form action="/add-category-task" method="POST">
+                    <input type="hidden" name="category_id" value="{{ category.id }}">
+
+                    <input type="text" name="task" placeholder="Enter a task..." required>
+
+                    <button type="submit">Add Task</button>
+                </form>
+                {% for task in category.tasks %}
+
+                <div class="category-task-row">
+
+                    <form action="/complete" method="POST">
+                        <input type="hidden" name="return_to" value="categories">
+
+                        <input type="checkbox" name="completed" value="yes" {% if task.completed %}checked{% endif %}
+                            onchange="this.form.submit()">
+
+                        <span>{{ task.title }}</span>
+                    </form>
+                    <a href="{{ url_for('edit_task', task_id=task.id) }}" class="edit-btn">
+                        Edit
+                    </a>
+
+                    <form action="/delete" method="POST">
+                        <input type="hidden" name="task_id" value="{{ task.id }}">
+                        <button type="submit" class="delete-btn">Delete</button>
+
+                    </form>
+
+                </div>
+
+                {% else %}
+                <p>No tasks in this category yet.</p>
+                {% endfor %}
+
+            </div>
+
+            <form action="/delete-category" method="post">
+                <input type="hidden" name="category_id" value="{{ category.id }}">
+                <hr class="category-divider">
+                <button type="submit" class="delete-btn">Delete</button>
+
+
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        const cursor = document.querySelector('.cyber-cursor');
+
+        document.addEventListener('mousemove', function (e) {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+        function toggleCategory(categoryId) {
+            const tasks = document.getElementById('tasks-' + categoryId);
+
+            if (tasks.style.display === 'none') {
+                tasks.style.display = 'block';
+            } else {
+                tasks.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+
+</html>
